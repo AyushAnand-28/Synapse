@@ -73,7 +73,27 @@ export class StudyPlannerService implements IStudyPlannerService {
   }
 
   async getRoadmap(planId: string): Promise<any> {
-      // In a real scenario, this coordinates fetching graph from topic repo and tasks
-      return { planId, status: "Roadmap generated" };
+    // Fetch all topics for this plan
+    const topics = await this.topicRepo.findAll({ plan_id: new Types.ObjectId(planId) });
+    // Fetch all tasks for those topics
+    const topicIds = topics.map((t: any) => t._id);
+    const tasks = await this.taskRepo.findAll({ topic_id: { $in: topicIds } });
+
+    return {
+      planId,
+      topics: topics.map((t: any) => ({
+        id:                 t._id.toString(),
+        title:              t.title,
+        mastery_score:      t.mastery_score,
+        estimated_minutes:  t.estimated_minutes,
+        dependencies:       t.dependencies.map((d: any) => d.toString()),
+      })),
+      tasks: tasks.map((t: any) => ({
+        id:           t._id.toString(),
+        topic_id:     t.topic_id.toString(),
+        scheduled_at: t.scheduled_at,
+        status:       t.status,
+      })),
+    };
   }
 }
