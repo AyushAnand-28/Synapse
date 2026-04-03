@@ -8,12 +8,16 @@ import { AIEngineService } from './services/AIEngineService';
 import { StudyPlannerService } from './services/StudyPlannerService';
 import { StudyPlanController } from './controllers/StudyPlanController';
 import { GraphController } from './controllers/GraphController';
+import { PerformanceLogController } from './controllers/PerformanceLogController';
 import { ITopicRepository } from './repositories/interfaces/ITopicRepository';
+import { AdaptivePlannerService } from './services/AdaptivePlannerService';
+import { PerformanceLog } from './models/PerformanceLog';
 
 // 1. Instantiate Repositories
 const studyPlanRepo = new BaseRepository(StudyPlan);
 const topicRepo: ITopicRepository = new TopicRepository(Topic);
 const taskRepo = new BaseRepository(Task);
+const performanceLogRepo = new BaseRepository(PerformanceLog);
 
 // 2. Instantiate Services
 const syllabusParserService = new SyllabusParserService();
@@ -27,6 +31,9 @@ const studyPlannerService = new StudyPlannerService(
     taskRepo
 );
 
+const adaptivePlannerService = new AdaptivePlannerService(taskRepo);
+
 // 3. Instantiate Controllers
-export const studyPlanController = new StudyPlanController(studyPlannerService);
+export const studyPlanController = new StudyPlanController(studyPlannerService, adaptivePlannerService);
 export const graphController = new GraphController(topicRepo);
+export const performanceLogController = new PerformanceLogController(performanceLogRepo);

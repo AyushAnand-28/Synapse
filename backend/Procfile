@@ -1,0 +1,2 @@
+# Render reads this file to know how to start the service
+web: node dist/server.js
