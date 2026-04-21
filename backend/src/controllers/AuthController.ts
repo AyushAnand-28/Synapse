@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'synapse_dev_secret';
 const JWT_EXPIRES = '7d';
+const getSecret = () => process.env.JWT_SECRET || 'synapse_dev_secret';
 
 export class AuthController {
   register = async (req: Request, res: Response): Promise<void> => {
@@ -28,7 +28,7 @@ export class AuthController {
       const password_hash = await bcrypt.hash(password, 12);
       const user = await User.create({ email: email.toLowerCase(), password_hash });
 
-      const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+      const token = jwt.sign({ userId: user._id.toString() }, getSecret(), { expiresIn: JWT_EXPIRES });
       res.status(201).json({
         message: 'Account created',
         token,
@@ -60,7 +60,7 @@ export class AuthController {
         return;
       }
 
-      const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+      const token = jwt.sign({ userId: user._id.toString() }, getSecret(), { expiresIn: JWT_EXPIRES });
       res.status(200).json({
         message: 'Login successful',
         token,
