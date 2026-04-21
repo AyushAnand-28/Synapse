@@ -14,6 +14,15 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
 
+  // Auto-logout on invalid / expired token
+  if (res.status === 401) {
+    localStorage.removeItem('synapse_token');
+    localStorage.removeItem('synapse_user');
+    localStorage.removeItem('synapse_plan_id');
+    window.location.href = '/auth';
+    throw new Error('Session expired — please sign in again.');
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(body.error ?? `HTTP ${res.status}`);
