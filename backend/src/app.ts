@@ -11,26 +11,42 @@ dotenv.config();
 export const app: Express = express();
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-const allowedOrigins = (
-  process.env.ALLOWED_ORIGINS ??
-  'http://localhost:5173,http://localhost:5174,https://synapse-gamma-mocha.vercel.app'
-).split(',').map(o => o.trim());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'https://synapse-gamma-mocha.vercel.app',
+];
+
+// Add origins from environment variable if present
+if (process.env.ALLOWED_ORIGINS) {
+  process.env.ALLOWED_ORIGINS.split(',').forEach(o => {
+    const trimmed = o.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
 
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow non-browser requests (curl, Postman), wildcard, or explicitly whitelisted origins
+    // Allow if no origin (non-browser), wildcard in list, or origin in list
     if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
       return cb(null, true);
     }
     
-    // Instead of throwing an error which bypasses CORS headers, we just log and reject
-    console.warn(`CORS: Origin ${origin} not allowed. Allowed: ${allowedOrigins.join(', ')}`);
+    // Log for debugging on Render
+    console.warn(`[CORS] Rejected origin: ${origin}`);
+    console.warn(`[CORS] Allowed list: ${allowedOrigins.join(', ')}`);
     return cb(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
 }));
+
+// Explicitly handle pre-flight requests for all routes
+app.options('*', cors());
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '5mb' }));
