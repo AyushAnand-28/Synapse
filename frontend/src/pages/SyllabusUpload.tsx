@@ -54,12 +54,13 @@ export default function SyllabusUpload() {
     try {
       let syllabusText: string;
 
-      if (file.type === 'application/pdf') {
-        // Encode PDF as base64 so backend can parse it with pdf-parse
-        const buffer = await file.arrayBuffer();
-        const bytes  = new Uint8Array(buffer);
-        const binary = bytes.reduce((s, b) => s + String.fromCharCode(b), '');
-        syllabusText = 'data:application/pdf;base64,' + btoa(binary);
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        syllabusText = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Failed to read PDF file'));
+          reader.readAsDataURL(file);
+        });
       } else {
         syllabusText = await file.text();
       }
