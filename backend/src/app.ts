@@ -18,8 +18,10 @@ const allowedOrigins = (
 
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow non-browser requests (curl, Postman) and whitelisted origins
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    // Allow non-browser requests (curl, Postman), wildcard, or explicitly whitelisted origins
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
     cb(new Error(`CORS policy: origin ${origin} not allowed`));
   },
   credentials: true,
