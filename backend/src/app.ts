@@ -13,7 +13,7 @@ export const app: Express = express();
 // ── CORS ─────────────────────────────────────────────────────────────────────
 const allowedOrigins = (
   process.env.ALLOWED_ORIGINS ??
-  'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177'
+  'http://localhost:5173,http://localhost:5174,https://synapse-gamma-mocha.vercel.app'
 ).split(',').map(o => o.trim());
 
 app.use(cors({
@@ -22,9 +22,14 @@ app.use(cors({
     if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
       return cb(null, true);
     }
-    cb(new Error(`CORS policy: origin ${origin} not allowed`));
+    
+    // Instead of throwing an error which bypasses CORS headers, we just log and reject
+    console.warn(`CORS: Origin ${origin} not allowed. Allowed: ${allowedOrigins.join(', ')}`);
+    return cb(null, false);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
